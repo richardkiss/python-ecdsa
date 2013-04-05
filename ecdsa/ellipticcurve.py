@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+
 #
 # Implementation of elliptic curves, for cryptographic applications.
 #
@@ -70,14 +70,14 @@ class Point( object ):
     if self.__curve: assert self.__curve.contains_point( x, y )
     if order: assert self * order == INFINITY
  
-  def __cmp__( self, other ):
-    """Return 0 if the points are identical, 1 otherwise."""
+  def __eq__( self, other ):
+    """Return 1 if the points are identical, 0 otherwise."""
     if self.__curve == other.__curve \
        and self.__x == other.__x \
        and self.__y == other.__y:
-      return 0
-    else:
       return 1
+    else:
+      return 0
 
   def __add__( self, other ):
     """Add one point to another point."""
@@ -186,7 +186,7 @@ def __main__():
     p1 = Point( c, x1, y1 )
     p2 = Point( c, x2, y2 )
     p3 = p1 + p2
-    print("%s + %s = %s" % ( p1, p2, p3 ), end=' ')
+    print("%s + %s = %s" % ( p1, p2, p3 ))
     if p3.x() != x3 or p3.y() != y3:
       raise FailedTest("Failure: should give (%d,%d)." % ( x3, y3 ))
     else:
@@ -196,7 +196,7 @@ def __main__():
     """We expect that on curve c, 2*(x1,y1) = (x3, y3)."""
     p1 = Point( c, x1, y1 )
     p3 = p1.double()
-    print("%s doubled = %s" % ( p1, p3 ), end=' ')
+    print("%s doubled = %s" % ( p1, p3 ))
     if p3.x() != x3 or p3.y() != y3:
       raise FailedTest("Failure: should give (%d,%d)." % ( x3, y3 ))
     else:
@@ -206,7 +206,7 @@ def __main__():
     """We expect that on curve c, 2*INFINITY = INFINITY."""
     p1 = INFINITY
     p3 = p1.double()
-    print("%s doubled = %s" % ( p1, p3 ), end=' ')
+    print("%s doubled = %s" % ( p1, p3 ))
     if p3.x() != INFINITY.x() or p3.y() != INFINITY.y():
       raise FailedTest("Failure: should give (%d,%d)." % ( INFINITY.x(), INFINITY.y() ))
     else:
@@ -216,7 +216,7 @@ def __main__():
     """We expect that on curve c, m*(x1,y1) = (x3,y3)."""
     p1 = Point( c, x1, y1 )
     p3 = p1 * m
-    print("%s * %d = %s" % ( p1, m, p3 ), end=' ')
+    print("%s * %d = %s" % ( p1, m, p3 ))
     if p3.x() != x3 or p3.y() != y3:
       raise FailedTest("Failure: should give (%d,%d)." % ( x3, y3 ))
     else:
@@ -240,7 +240,7 @@ def __main__():
   check = INFINITY
   for i in range( 7 + 1 ):
     p = ( i % 7 ) * g
-    print("%s * %d = %s, expected %s . . ." % ( g, i, p, check ), end=' ')
+    print("%s * %d = %s, expected %s . . ." % ( g, i, p, check ))
     if p == check:
       print(" Good.")
     else:
