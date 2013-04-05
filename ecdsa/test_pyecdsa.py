@@ -323,16 +323,20 @@ class OpenSSL(unittest.TestCase):
         run_openssl("ecparam -name %s -genkey -out t/privkey.pem" % curvename)
         run_openssl("ec -in t/privkey.pem -pubout -out t/pubkey.pem")
         data = b"data"
-        open("t/data.txt","wb").write(data)
+        with open("t/data.txt","wb") as f:
+            f.write(data)
         run_openssl("dgst %s -sign t/privkey.pem -out t/data.sig t/data.txt" % mdarg)
         run_openssl("dgst %s -verify t/pubkey.pem -signature t/data.sig t/data.txt" % mdarg)
-        pubkey_pem = open("t/pubkey.pem").read()
+        with open("t/pubkey.pem") as f:
+            pubkey_pem = f.read()
         vk = VerifyingKey.from_pem(pubkey_pem) # 3
-        sig_der = open("t/data.sig","rb").read()
+        with open("t/data.sig","rb") as f:
+            sig_der = f.read()
         self.assertTrue(vk.verify(sig_der, data, # 5
                                   hashfunc=sha1, sigdecode=sigdecode_der))
 
-        sk = SigningKey.from_pem(open("t/privkey.pem").read()) # 1
+        with open("t/privkey.pem") as f:
+            sk = SigningKey.from_pem(f.read()) # 1
         sig = sk.sign(data)
         self.assertTrue(vk.verify(sig, data))
 
@@ -355,18 +359,24 @@ class OpenSSL(unittest.TestCase):
         sk = SigningKey.generate(curve=curve)
         vk = sk.get_verifying_key()
         data = b"data"
-        open("t/pubkey.der","wb").write(vk.to_der()) # 4
-        open("t/pubkey.pem","w").write(vk.to_pem()) # 4
+        with open("t/pubkey.der","wb") as f:
+            f.write(vk.to_der()) # 4
+        with open("t/pubkey.pem","w") as f:
+            f.write(vk.to_pem()) # 4
         sig_der = sk.sign(data, hashfunc=sha1, sigencode=sigencode_der)
-        open("t/data.sig","wb").write(sig_der) # 6
-        open("t/data.txt","wb").write(data)
-        open("t/baddata.txt","wb").write(data+b"corrupt")
+        with open("t/data.sig","wb") as f:
+            f.write(sig_der) # 6
+        with open("t/data.txt","wb") as f:
+            f.write(data)
+        with open("t/baddata.txt","wb") as f:
+            f.write(data+b"corrupt")
 
         self.assertRaises(SubprocessError, run_openssl,
                               "dgst %s -verify t/pubkey.der -keyform DER -signature t/data.sig t/baddata.txt" % mdarg)
         run_openssl("dgst %s -verify t/pubkey.der -keyform DER -signature t/data.sig t/data.txt" % mdarg)
 
-        open("t/privkey.pem","w").write(sk.to_pem()) # 2
+        with open("t/privkey.pem","w") as f:
+            f.write(sk.to_pem()) # 2
         run_openssl("dgst %s -sign t/privkey.pem -out t/data.sig2 t/data.txt" % mdarg)
         run_openssl("dgst %s -verify t/pubkey.pem -signature t/data.sig2 t/data.txt" % mdarg)
 
