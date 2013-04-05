@@ -6,14 +6,14 @@ import subprocess
 from binascii import hexlify, unhexlify
 from hashlib import sha1, sha256
 
-from keys import SigningKey, VerifyingKey
-from keys import BadSignatureError
-import util
-from util import sigencode_der, sigencode_strings
-from util import sigdecode_der, sigdecode_strings
-from curves import Curve, UnknownCurveError
-from curves import NIST192p, NIST224p, NIST256p, NIST384p, NIST521p
-import der
+from .keys import SigningKey, VerifyingKey
+from .keys import BadSignatureError
+from . import util
+from .util import sigencode_der, sigencode_strings
+from .util import sigdecode_der, sigdecode_strings
+from .curves import Curve, UnknownCurveError
+from .curves import NIST192p, NIST224p, NIST256p, NIST384p, NIST521p
+from . import der
 
 class SubprocessError(Exception):
     pass
@@ -58,7 +58,7 @@ class ECDSA(unittest.TestCase):
         sig = priv.sign("data")
         self.failUnlessEqual(len(sig), default.signature_length)
         if BENCH:
-            print
+            print()
         for curve in (NIST192p, NIST224p, NIST256p, NIST384p, NIST521p):
             start = time.time()
             priv = SigningKey.generate(curve=curve)
@@ -76,9 +76,9 @@ class ECDSA(unittest.TestCase):
                 start = time.time()
                 pub1.verify(sig, "data")
                 verify_time = time.time() - start
-                print "%s: siglen=%d, keygen=%0.3fs, sign=%0.3f, verify=%0.3f" \
+                print("%s: siglen=%d, keygen=%0.3fs, sign=%0.3f, verify=%0.3f" \
                       % (curve.name, curve.signature_length,
-                         keygen_time, sign_time, verify_time)
+                         keygen_time, sign_time, verify_time))
 
     def test_serialize(self):
         seed = "secret"
@@ -477,7 +477,7 @@ class Util(unittest.TestCase):
         # this technique should use the full range
         self.failUnless(counts[order-1])
         for i in range(1, order):
-            print "%3d: %s" % (i, "*"*(counts[i]//100))
+            print("%3d: %s" % (i, "*"*(counts[i]//100)))
             
 
 def __main__():

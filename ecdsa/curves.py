@@ -1,4 +1,4 @@
-import der, ecdsa
+from . import der, ecdsa
 
 class UnknownCurveError(Exception):
     pass

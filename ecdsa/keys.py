@@ -1,11 +1,11 @@
 import binascii
 
-import ecdsa
-import der
-from curves import NIST192p, find_curve
-from util import string_to_number, number_to_string, randrange
-from util import sigencode_string, sigdecode_string
-from util import oid_ecPublicKey, encoded_oid_ecPublicKey
+from . import ecdsa
+from . import der
+from .curves import NIST192p, find_curve
+from .util import string_to_number, number_to_string, randrange
+from .util import sigencode_string, sigdecode_string
+from .util import oid_ecPublicKey, encoded_oid_ecPublicKey
 from hashlib import sha1
 
 class BadSignatureError(Exception):
@@ -39,7 +39,7 @@ class VerifyingKey:
         x = string_to_number(xs)
         y = string_to_number(ys)
         assert ecdsa.point_is_valid(curve.generator, x, y)
-        import ellipticcurve
+        from . import ellipticcurve
         point = ellipticcurve.Point(curve.curve, x, y, order)
         return klass.from_public_point(point, curve, hashfunc)
 

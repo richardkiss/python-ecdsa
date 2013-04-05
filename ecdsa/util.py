@@ -3,8 +3,8 @@ import os
 import math
 import binascii
 from hashlib import sha256
-import der
-from curves import orderlen
+from . import der
+from .curves import orderlen
 
 # RFC5480:
 #   The "unrestricted" algorithm identifier is:
@@ -64,7 +64,7 @@ class PRNG:
         self.generator = self.block_generator(seed)
 
     def __call__(self, numbytes):
-        return "".join([self.generator.next() for i in range(numbytes)])
+        return "".join([next(self.generator) for i in range(numbytes)])
 
     def block_generator(self, seed):
         counter = 0
