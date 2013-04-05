@@ -46,7 +46,7 @@ def randrange(order, entropy=None):
     dont_try_forever = 10000 # gives about 2**-60 failures for worst case
     while dont_try_forever > 0:
         dont_try_forever -= 1
-        candidate = string_to_number(entropy(bytes)) + 1
+        candidate = bytes_to_number(entropy(bytes)) + 1
         if 1 <= candidate < order:
             return candidate
         continue
@@ -64,12 +64,12 @@ class PRNG:
         self.generator = self.block_generator(seed)
 
     def __call__(self, numbytes):
-        return "".join([next(self.generator) for i in range(numbytes)])
+        return bytes([next(self.generator) for i in range(numbytes)])
 
     def block_generator(self, seed):
         counter = 0
         while True:
-            for byte in sha256("prng-%d-%s" % (counter, seed)).digest():
+            for byte in sha256(("prng-%d-%s" % (counter, seed)).encode("utf8")).digest():
                 yield byte
             counter += 1
 
@@ -139,28 +139,30 @@ def randrange_from_seed__trytryagain(seed, order):
     # of bits. The average number of loops will range from 1.0 (when
     # order=2**k-1) to 2.0 (when order=2**k+1).
     assert order > 1
-    bits, bytes, extrabits = bits_and_bytes(order)
+    bits, the_bytes, extrabits = bits_and_bytes(order)
     generate = PRNG(seed)
     while True:
-        extrabyte = ""
+        extrabytes = b""
         if extrabits:
-            extrabyte = chr(ord(generate(1)) & lsb_of_ones(extrabits))
-        guess = string_to_number(extrabyte + generate(bytes)) + 1
+            extrabytes = bytes([generate(1)[0] & lsb_of_ones(extrabits)])
+        guess = bytes_to_number(extrabytes + generate(the_bytes)) + 1
         if 1 <= guess < order:
             return guess
 
 
-def number_to_string(num, order):
+def number_to_bytes(num, order):
     l = orderlen(order)
     fmt_str = "%0" + str(2*l) + "x"
     string = binascii.unhexlify(fmt_str % num)
     assert len(string) == l, (len(string), l)
     return string
 
-def string_to_number(string):
+def bytes_to_number(string):
+    if type(string) != bytes:
+        import pdb; pdb.set_trace()
     return int(binascii.hexlify(string), 16)
 
-def string_to_number_fixedlen(string, order):
+def bytes_to_number_fixedlen(string, order):
     l = orderlen(order)
     assert len(string) == l, (len(string), l)
     return int(binascii.hexlify(string), 16)
@@ -169,46 +171,46 @@ def string_to_number_fixedlen(string, order):
 # sigdecode= argument to VK.verify(), and control how the signature is packed
 # or unpacked.
 
-def sigencode_strings(r, s, order):
-    r_str = number_to_string(r, order)
-    s_str = number_to_string(s, order)
+def sigencode_bytes_pair(r, s, order):
+    r_str = number_to_bytes(r, order)
+    s_str = number_to_bytes(s, order)
     return (r_str, s_str)
 
-def sigencode_string(r, s, order):
+def sigencode_bytes(r, s, order):
     # for any given curve, the size of the signature numbers is
     # fixed, so just use simple concatenation
-    r_str, s_str = sigencode_strings(r, s, order)
+    r_str, s_str = sigencode_bytes_pair(r, s, order)
     return r_str + s_str
 
 def sigencode_der(r, s, order):
     return der.encode_sequence(der.encode_integer(r), der.encode_integer(s))
 
 
-def sigdecode_string(signature, order):
+def sigdecode_bytes(signature, order):
     l = orderlen(order)
     assert len(signature) == 2*l, (len(signature), 2*l)
-    r = string_to_number_fixedlen(signature[:l], order)
-    s = string_to_number_fixedlen(signature[l:], order)
+    r = bytes_to_number_fixedlen(signature[:l], order)
+    s = bytes_to_number_fixedlen(signature[l:], order)
     return r, s
 
-def sigdecode_strings(rs_strings, order):
+def sigdecode_bytes_pair(rs_strings, order):
     (r_str, s_str) = rs_strings
     l = orderlen(order)
     assert len(r_str) == l, (len(r_str), l)
     assert len(s_str) == l, (len(s_str), l)
-    r = string_to_number_fixedlen(r_str, order)
-    s = string_to_number_fixedlen(s_str, order)
+    r = bytes_to_number_fixedlen(r_str, order)
+    s = bytes_to_number_fixedlen(s_str, order)
     return r, s
 
 def sigdecode_der(sig_der, order):
     #return der.encode_sequence(der.encode_integer(r), der.encode_integer(s))
     rs_strings, empty = der.remove_sequence(sig_der)
-    if empty != "":
+    if empty != b"":
         raise der.UnexpectedDER("trailing junk after DER sig: %s" %
                                 binascii.hexlify(empty))
     r, rest = der.remove_integer(rs_strings)
     s, empty = der.remove_integer(rest)
-    if empty != "":
+    if empty != b"":
         raise der.UnexpectedDER("trailing junk after DER numbers: %s" %
                                 binascii.hexlify(empty))
     return r, s
